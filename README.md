@@ -34,7 +34,7 @@ ready-made configs are included:
 | Host | How |
 | --- | --- |
 | **AWS** (S3 + CloudFront) | See [Deploy to AWS](#deploy-to-aws) below. `.github/workflows/deploy-aws.yml` builds and publishes on every push to `main`. |
-| **GitHub Pages** (free) | *Settings → Pages → Source: GitHub Actions*, then run *Deploy to GitHub Pages* from the Actions tab (`.github/workflows/deploy-pages.yml`). |
+| **GitHub Pages** (free) | *Settings → Pages → Source: GitHub Actions*. The workflow in `.github/workflows/deploy-pages.yml` builds and publishes on every push to `main`. Live at <https://bharathkumarkristam5-droid.github.io/ResumeGenerator/>. |
 | **Netlify** (free tier) | "Add new site → Import from Git", or drag-and-drop the build folder. `netlify.toml` sets the build command, SPA redirects and security headers. |
 | **Vercel** (free tier) | "Add New → Project → Import" the repo. `vercel.json` handles the rest. |
 | **Any server / cloud VM** | `docker build -t resume-studio . && docker run -p 80:80 resume-studio` (nginx, gzip, caching and SPA fallback configured in `nginx.conf`). |
