@@ -1,0 +1,115 @@
+@if (resume(); as r) {
+  <div class="builder">
+    <!-- Step rail -->
+    <aside class="rail">
+      <a routerLink="/" class="rail-logo" aria-label="Home"><app-logo [light]="true" /></a>
+      <nav class="rail-steps" aria-label="Resume sections">
+        @for (s of steps; track s.id; let i = $index) {
+          <button class="rail-step" [class.active]="ctx.step() === s.id" [class.done]="done(s.id, r)"
+            (click)="ctx.step.set(s.id)" [attr.aria-current]="ctx.step() === s.id ? 'step' : null">
+            <span class="bubble">
+              @if (done(s.id, r) && ctx.step() !== s.id) { <app-icon name="check" [size]="14" [stroke]="3" /> } @else { {{ i + 1 }} }
+            </span>
+            <span class="lbl">{{ s.label }}</span>
+          </button>
+        }
+      </nav>
+      <div class="rail-score">
+        <div class="rs-top"><span>Resume strength</span><strong>{{ score() }}%</strong></div>
+        <div class="rs-bar"><i [style.width.%]="score()"></i></div>
+        <button class="rs-link" (click)="ctx.step.set('finalize')">See suggestions <app-icon name="chevron-right" [size]="14" /></button>
+      </div>
+      <a routerLink="/resumes" class="rail-back"><app-icon name="chevron-left" [size]="16" /> All resumes</a>
+    </aside>
+
+    <div class="workspace">
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="doc">
+          <app-icon name="file" [size]="18" />
+          <input class="doc-name" [value]="r.name" (change)="rename($any($event.target).value)" aria-label="Resume name" />
+          <span class="saved">
+            @if (store.lastSaved(); as t) { <app-icon name="check-circle" [size]="13" /> Saved {{ t | date: 'h:mm a' }} } @else { Saved locally }
+          </span>
+        </div>
+        <div class="top-actions">
+          <button class="ai-pill" (click)="ai.dialogOpen.set(true)"><app-icon name="sparkles" [size]="14" /> {{ ai.label() }}</button>
+          <button class="btn btn-secondary sm preview-toggle" (click)="mobilePreview.set(true)"><app-icon name="eye" [size]="15" /> Preview</button>
+          <div class="menu-wrap">
+            <button class="btn btn-primary sm" (click)="toggleMenu($event)" [attr.aria-expanded]="menuOpen()" aria-haspopup="menu">
+              @if (ctx.exporting()) { <app-icon name="loader" class="spin" [size]="15" /> } @else { <app-icon name="download" [size]="15" /> }
+              Download <app-icon name="chevron-down" [size]="14" />
+            </button>
+            @if (menuOpen()) {
+              <div class="menu" role="menu" (click)="$event.stopPropagation()">
+                <button role="menuitem" (click)="ctx.export('pdf')"><app-icon name="file-down" [size]="17" /><span><strong>PDF</strong><small>Best for sending</small></span></button>
+                <button role="menuitem" (click)="ctx.export('docx')"><app-icon name="file-type" [size]="17" /><span><strong>Word (.docx)</strong><small>Editable & ATS-friendly</small></span></button>
+                <button role="menuitem" (click)="ctx.export('print')"><app-icon name="printer" [size]="17" /><span><strong>Print / Save as PDF</strong><small>Selectable text</small></span></button>
+                <button role="menuitem" (click)="ctx.export('json')"><app-icon name="json" [size]="17" /><span><strong>Backup (.json)</strong><small>Move to another device</small></span></button>
+              </div>
+            }
+          </div>
+        </div>
+      </header>
+
+      <div class="cols">
+        <!-- Form -->
+        <section class="form-col" #formCol>
+          <div class="form-inner">
+            @switch (ctx.step()) {
+              @case ('heading') { <app-heading-step /> }
+              @case ('experience') { <app-experience-step /> }
+              @case ('education') { <app-education-step /> }
+              @case ('skills') { <app-skills-step /> }
+              @case ('summary') { <app-summary-step /> }
+              @case ('extras') { <app-extras-step /> }
+              @case ('finalize') { <app-finalize-step /> }
+            }
+            <div class="step-nav">
+              @if (stepIndex() > 0) {
+                <button class="btn btn-secondary" (click)="go(-1)"><app-icon name="chevron-left" [size]="16" /> Back</button>
+              }
+              <span class="grow"></span>
+              @if (stepIndex() < steps.length - 1) {
+                <button class="btn btn-primary" (click)="go(1)">Next: {{ steps[stepIndex() + 1].label }} <app-icon name="chevron-right" [size]="16" /></button>
+              } @else {
+                <button class="btn btn-primary" (click)="ctx.export('pdf')" [disabled]="!!ctx.exporting()"><app-icon name="download" [size]="16" /> Download PDF</button>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Live preview -->
+        <section class="preview-col" [class.show]="mobilePreview()">
+          <div class="pv-bar">
+            <div class="pv-tpl"><span>Template</span><strong>{{ templateName() }}</strong>
+              <button class="btn btn-ghost sm" (click)="ctx.step.set('finalize'); mobilePreview.set(false)"><app-icon name="template" [size]="14" /> Change</button>
+            </div>
+            <div class="pv-zoom">
+              <button class="icon-btn" (click)="setZoom(-0.1)" aria-label="Zoom out"><app-icon name="zoom-out" [size]="17" /></button>
+              <span>{{ (zoom() * 100).toFixed(0) }}%</span>
+              <button class="icon-btn" (click)="setZoom(0.1)" aria-label="Zoom in"><app-icon name="zoom-in" [size]="17" /></button>
+              <button class="icon-btn close-pv" (click)="mobilePreview.set(false)" aria-label="Close preview"><app-icon name="x" [size]="18" /></button>
+            </div>
+          </div>
+          <div class="pv-scroll">
+            <div class="pv-paper"><app-resume-preview [resume]="r" [showBreaks]="true" [zoom]="zoom()" /></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Unscaled copy used for PDF / print export -->
+    <div class="export-stage" aria-hidden="true"><div #exportEl><app-resume-renderer [resume]="r" /></div></div>
+  </div>
+} @else {
+  <div class="missing">
+    <app-logo />
+    <h1>Resume not found</h1>
+    <p>It may have been deleted, or it was created in a different browser.</p>
+    <div class="missing-actions">
+      <a class="btn btn-primary" routerLink="/templates">Create a new resume</a>
+      <a class="btn btn-secondary" routerLink="/resumes">My resumes</a>
+    </div>
+  </div>
+}

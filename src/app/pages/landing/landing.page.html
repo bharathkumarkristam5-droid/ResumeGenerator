@@ -1,0 +1,140 @@
+<app-site-header />
+
+<section class="hero">
+  <div class="glow"></div>
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="pill"><app-icon name="sparkles" [size]="14" /> AI-powered · 100% free · No sign-up</span>
+      <h1>Build a job-winning resume <span class="grad">in minutes</span></h1>
+      <p class="lead">
+        Choose a professionally designed template, let the AI assistant polish every line,
+        and download a recruiter-ready PDF or Word file — completely free.
+      </p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary lg" routerLink="/templates">Create my resume <app-icon name="arrow-right" [size]="18" /></a>
+        <a class="btn btn-secondary lg" routerLink="/resumes">My resumes</a>
+      </div>
+      <ul class="trust">
+        <li><app-icon name="check-circle" [size]="16" /> {{ templateCount }} designer templates</li>
+        <li><app-icon name="check-circle" [size]="16" /> ATS-friendly</li>
+        <li><app-icon name="check-circle" [size]="16" /> PDF & DOCX export</li>
+      </ul>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="paper back"><app-resume-preview [resume]="heroBack" [clip]="true" /></div>
+      <div class="paper front"><app-resume-preview [resume]="heroFront" [clip]="true" /></div>
+      <div class="float f1"><span class="dot ai"><app-icon name="wand" [size]="16" /></span><div><strong>Summary enhanced</strong><small>+12 action verbs</small></div></div>
+      <div class="float f2"><span class="dot ok"><app-icon name="gauge" [size]="16" /></span><div><strong>Resume score 95</strong><small>Excellent</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">Everything you need</span>
+      <h2>Enterprise-grade tools, consumer-grade simplicity</h2>
+      <p>Built with the same principles used by professional resume writers and recruiters.</p>
+    </div>
+    <div class="features">
+      @for (f of features; track f.title) {
+        <article class="feature card">
+          <div class="f-icon"><app-icon [name]="f.icon" [size]="22" /></div>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.text }}</p>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section alt" id="how">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps to your next interview</h2>
+    </div>
+    <div class="steps">
+      @for (s of steps; track s.n) {
+        <div class="step">
+          <span class="num">{{ s.n }}</span>
+          <h3>{{ s.title }}</h3>
+          <p>{{ s.text }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="sec-head row">
+      <div>
+        <span class="eyebrow">Templates</span>
+        <h2>Designs that get noticed</h2>
+      </div>
+      <a class="btn btn-secondary" routerLink="/templates">View all templates <app-icon name="arrow-right" [size]="16" /></a>
+    </div>
+    <div class="showcase">
+      @for (t of showcase; track t.meta.id) {
+        <a class="show-card" routerLink="/templates" [queryParams]="{ selected: t.meta.id }">
+          <div class="show-thumb"><app-resume-preview [resume]="t.resume" [clip]="true" /></div>
+          <div class="show-meta"><strong>{{ t.meta.name }}</strong><span>{{ t.meta.categories.join(' · ') }}</span></div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section ai-band">
+  <div class="container ai-grid">
+    <div>
+      <span class="eyebrow light">AI assistant</span>
+      <h2>Your personal resume writer, built in</h2>
+      <p>
+        Stuck on what to write? Get a tailored professional summary, transform “responsible for…” into
+        achievement-driven bullet points, and discover the skills recruiters search for in your field.
+      </p>
+      <ul>
+        <li><app-icon name="check" [size]="16" /> Free built-in engine — works offline, no key needed</li>
+        <li><app-icon name="check" [size]="16" /> Optional Claude integration for deep, context-aware rewriting</li>
+        <li><app-icon name="check" [size]="16" /> Never invents facts — you stay in control of every word</li>
+      </ul>
+      <a class="btn btn-ai lg" routerLink="/templates"><app-icon name="sparkles" [size]="18" /> Try the AI builder</a>
+    </div>
+    <div class="ai-demo card">
+      <div class="demo-label">Before</div>
+      <p class="before">Responsible for managing the website and helped with marketing campaigns.</p>
+      <div class="demo-label grad-label"><app-icon name="wand" [size]="14" /> After</div>
+      <ul class="after">
+        <li>Owned the company website, improving page speed and uptime for 50K monthly visitors</li>
+        <li>Supported multi-channel marketing campaigns that generated 1,200+ qualified leads</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="container narrow">
+    <div class="sec-head">
+      <span class="eyebrow">FAQ</span>
+      <h2>Frequently asked questions</h2>
+    </div>
+    @for (f of faqs; track f.q) {
+      <details class="faq">
+        <summary>{{ f.q }} <app-icon name="chevron-down" [size]="18" /></summary>
+        <p>{{ f.a }}</p>
+      </details>
+    }
+  </div>
+</section>
+
+<section class="container cta-band">
+  <div>
+    <h2>Ready to land your dream job?</h2>
+    <p>Create a professional resume in minutes — free forever.</p>
+  </div>
+  <a class="btn lg cta-btn" routerLink="/templates">Get started <app-icon name="arrow-right" [size]="18" /></a>
+</section>
+
+<app-site-footer />
