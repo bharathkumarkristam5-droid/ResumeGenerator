@@ -1,0 +1,49 @@
+# Builds the app and publishes it to AWS (private S3 bucket behind CloudFront) on every push to main.
+# One-time setup: create a stack from aws/cloudformation.yml, then add its outputs as repository
+# variables (see "Deploy to AWS" in README.md). Until AWS_ROLE_ARN is set this workflow is skipped.
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # sign in to AWS with a short-lived OIDC token instead of stored access keys
+
+concurrency:
+  group: aws-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.AWS_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    env:
+      BUCKET: ${{ vars.AWS_S3_BUCKET }}
+      DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx ng build
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Upload to S3
+        working-directory: dist/resume-studio/browser
+        run: |
+          # Fingerprinted bundles and fonts never change, so browsers may cache them for a year. They go up
+          # first and old ones are kept, so a tab still running the previous release can lazy-load its chunks.
+          aws s3 sync . "s3://$BUCKET" --exclude "*" --include "*.js" --include "*.css" --include "media/*" \
+            --cache-control "public, max-age=31536000, immutable"
+          # Everything else (index.html, favicons) is revalidated on every visit.
+          aws s3 sync . "s3://$BUCKET" --delete --exclude "*.js" --exclude "*.css" --exclude "media/*" \
+            --cache-control "no-cache"
+      - name: Refresh CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/*"

@@ -33,12 +33,40 @@ ready-made configs are included:
 
 | Host | How |
 | --- | --- |
-| **GitHub Pages** (free) | Push to a GitHub repo, then *Settings → Pages → Source: GitHub Actions*. The workflow in `.github/workflows/deploy-pages.yml` builds and publishes on every push to `main`. |
+| **AWS** (S3 + CloudFront) | See [Deploy to AWS](#deploy-to-aws) below. `.github/workflows/deploy-aws.yml` builds and publishes on every push to `main`. |
+| **GitHub Pages** (free) | *Settings → Pages → Source: GitHub Actions*, then run *Deploy to GitHub Pages* from the Actions tab (`.github/workflows/deploy-pages.yml`). |
 | **Netlify** (free tier) | "Add new site → Import from Git", or drag-and-drop the build folder. `netlify.toml` sets the build command, SPA redirects and security headers. |
 | **Vercel** (free tier) | "Add New → Project → Import" the repo. `vercel.json` handles the rest. |
 | **Any server / cloud VM** | `docker build -t resume-studio . && docker run -p 80:80 resume-studio` (nginx, gzip, caching and SPA fallback configured in `nginx.conf`). |
 
 All routes are client-side, so the host must serve `index.html` for unknown paths. Every config above does this.
+
+### Deploy to AWS
+
+The site is served from a private S3 bucket through CloudFront (HTTPS, HTTP/3, compression, security
+headers, SPA fallback). GitHub Actions signs in to AWS over OIDC, so no AWS access keys are stored in GitHub.
+
+1. **Create the AWS resources (once).** In the AWS console open *CloudFormation → Create stack → With new
+   resources*, choose *Upload a template file* and select `aws/cloudformation.yml`. Name the stack
+   (e.g. `resume-studio`) and keep the defaults. Set *CreateGitHubOIDCProvider* to `false` only if
+   *IAM → Identity providers* already lists `token.actions.githubusercontent.com`. Tick the IAM
+   acknowledgement and submit. The stack takes about 5 minutes, mostly for CloudFront.
+2. **Connect the repository (once).** In GitHub open *Settings → Secrets and variables → Actions →
+   Variables* and add four repository variables using the stack's *Outputs* tab:
+
+   | Variable | Stack output |
+   | --- | --- |
+   | `AWS_REGION` | `AwsRegion` |
+   | `AWS_ROLE_ARN` | `AwsRoleArn` |
+   | `AWS_S3_BUCKET` | `AwsS3Bucket` |
+   | `AWS_CLOUDFRONT_DISTRIBUTION_ID` | `AwsCloudFrontDistributionId` |
+
+3. **Deploy.** Open *Actions → Deploy to AWS → Run workflow*. After that, every push to `main` deploys
+   automatically. The site is at the stack's `SiteUrl` output (`https://<id>.cloudfront.net`).
+
+For a custom domain, request a certificate in AWS Certificate Manager in **us-east-1**. Then add the domain
+under *Alternate domain names* on the CloudFront distribution and point a DNS CNAME (or Route 53 alias) at
+the CloudFront address.
 
 ## AI configuration
 

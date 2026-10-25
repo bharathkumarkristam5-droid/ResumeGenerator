@@ -1,10 +1,9 @@
-# Builds the app and publishes it to GitHub Pages on every push to main.
+# Builds the app and publishes it to GitHub Pages. Run it from the Actions tab; to publish on every
+# push instead, add `push: { branches: [main] }` under `on:` (the AWS workflow already does that).
 # One-time setup: repository Settings → Pages → Source: "GitHub Actions".
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
